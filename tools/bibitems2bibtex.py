@@ -5,7 +5,6 @@ don't have semantic information, certain heuristics have to be applied.
 
 import argparse
 import re
-import sys
 
 
 def main(argv=None):
@@ -219,10 +218,7 @@ def extract_bibitems(filename):
 def _get_parser():
     parser = argparse.ArgumentParser(description="Extract bibitems.")
     parser.add_argument(
-        "-v",
-        "--version",
-        help="display version information",
-        action="version"
+        "-v", "--version", help="display version information", action="version"
     )
     parser.add_argument("input", type=str, help="input LaTeX file")
     return parser

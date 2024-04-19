@@ -5,7 +5,6 @@ import pytest
 
 import bibfmt
 
-
 TEST_BIBTEXT_PREAMBLE_UNFORMATTED = (
     '@preamble{"\\RequirePackage{biblatex}"}\n'
     '@preamble{"\\addbibressource{dependend.bib}"}\n'
@@ -27,10 +26,7 @@ TEST_BIBTEXT_PREAMBLE_FORMATTED_KEEP = (
 )
 
 TEST_BIBTEXT_PREAMBLE_FORMATTED_DROP = (
-    "@article{foobar,\n"
-    " doi = {foobar},\n"
-    " url = {https://doi.org/foobar},\n"
-    "}\n"
+    "@article{foobar,\n doi = {foobar},\n url = {https://doi.org/foobar},\n}\n"
 )
 
 

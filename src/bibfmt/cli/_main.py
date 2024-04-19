@@ -10,10 +10,7 @@ def main(argv=None):
     )
 
     parser.add_argument(
-        "--version",
-        "-v",
-        action="version",
-        help="display version information"
+        "--version", "-v", action="version", help="display version information"
     )
 
     _format.add_args(parser)
