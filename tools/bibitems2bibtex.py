@@ -2,6 +2,7 @@
 Parses a number of bibitems into a proper BibTeX bibliography.  Since bibitems
 don't have semantic information, certain heuristics have to be applied.
 """
+
 import argparse
 import re
 import sys

@@ -8,7 +8,6 @@ from pathlib import Path
 from warnings import warn
 
 import appdirs
-import enchant
 import requests
 import tomli
 
@@ -144,24 +143,6 @@ def _get_config_data() -> tuple[list[str], list[str]]:
     return add_list, remove_list
 
 
-def create_dict():
-    d = enchant.DictWithPWL("en_US")
-
-    add_list, remove_list = _get_config_data()
-
-    for word in add_list:
-        word = word.strip()
-        d.add(word)
-        d.add(word + "'s")
-        if word[-1] == "s":
-            d.add(word + "'")
-
-    for word in remove_list:
-        d.remove(word.strip())
-
-    return d
-
-
 def _translate_word(word, d):
     # Check if the word needs to be protected by curly braces to prevent
     # recapitalization.
@@ -186,7 +167,7 @@ def _translate_word(word, d):
     return word
 
 
-def _translate_title(val, dictionary=create_dict()):
+def _translate_title(val):
     """The capitalization of BibTeX entries is handled by the style, so names (Newton)
     or abbreviations (GMRES) may not be capitalized. This is unless they are wrapped in
     curly braces.
@@ -206,10 +187,7 @@ def _translate_title(val, dictionary=create_dict()):
         if k > 0 and words[k - 1][-1] == ":" and words[k][0] != "{":
             words[k] = "{" + words[k].capitalize() + "}"
 
-    words = [
-        "-".join([_translate_word(w, dictionary) for w in word.split("-")])
-        for word in words
-    ]
+    words = ["-".join(w for w in word.split("-")) for word in words]
 
     return " ".join(words)
 
