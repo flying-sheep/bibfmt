@@ -30,8 +30,18 @@ dependencies = [
 ]
 requires-python = ">=3.9"
 
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-codeblocks >= 0.12.2",
+    "pytest-cov",
+]
+
 [project.scripts]
 bibfmt = "bibfmt.cli:main"
+
+[tool.hatch.envs.default]
+features = ["test"]
 
 [tool.isort]
 profile = "black"
