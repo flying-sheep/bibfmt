@@ -4,11 +4,10 @@ import pybtex
 import pybtex.database
 import pytest
 
-import betterbib
-from betterbib.cli._doi_to_bibtex import _create_citekey_for_entry
+import bibfmt
 
 this_dir = Path(__file__).resolve().parent
-data_file_exists = Path(this_dir / "../src/betterbib/data/journals.json").is_file()
+data_file_exists = Path(this_dir / "../src/bibfmt/data/journals.json").is_file()
 
 
 def test_merge():
@@ -28,11 +27,11 @@ def test_merge():
         persons={"author": [pybtex.database.Person("Doe, John")]},
     )
 
-    merged = betterbib.merge(entry1, entry2)
+    merged = bibfmt.merge(entry1, entry2)
 
-    assert betterbib.pybtex_to_bibtex_string(
+    assert bibfmt.pybtex_to_bibtex_string(
         merged, "key", sort=True
-    ) == betterbib.pybtex_to_bibtex_string(reference, "key", sort=True)
+    ) == bibfmt.pybtex_to_bibtex_string(reference, "key", sort=True)
 
 
 @pytest.mark.skipif(not data_file_exists, reason="Data file missing")
@@ -46,7 +45,7 @@ def test_journal_name():
     )
 
     tmp = {"key": lng}
-    betterbib.journal_abbrev(tmp)
+    bibfmt.journal_abbrev(tmp)
     assert tmp["key"].fields["journal"] == shrt.fields["journal"]
 
     lng = pybtex.database.Entry(
@@ -54,12 +53,12 @@ def test_journal_name():
         fields={"journal": "SIAM Journal on Matrix Analysis and Applications"},
     )
     tmp = {"key": shrt}
-    betterbib.journal_abbrev(tmp, long_journal_names=True)
+    bibfmt.journal_abbrev(tmp, long_journal_names=True)
     assert tmp["key"].fields["journal"] == lng.fields["journal"]
 
 
 def test_month_range():
-    assert betterbib.translate_month("June-July") == 'jun # "-" # jul'
+    assert bibfmt.translate_month("June-July") == 'jun # "-" # jul'
 
 
 def test_decode():
@@ -68,7 +67,7 @@ def test_decode():
         "misc",
         fields=[("url", url), ("note", "Online; accessed 19-February-2019")],
     )
-    out = betterbib.decode(entry)
+    out = bibfmt.decode(entry)
     assert out.fields["url"] == url
 
 
@@ -78,25 +77,5 @@ def test_decode_doi():
         "misc",
         fields=[("doi", doi), ("note", "Online; accessed 19-February-2019")],
     )
-    out = betterbib.decode(d)
+    out = bibfmt.decode(d)
     assert out.fields["doi"] == doi
-
-
-def test_create_citekey():
-    entry = pybtex.database.Entry(
-        "article",
-        fields={
-            "year": 2021,
-            "title": "A fancy algorithm for generating citekeys",
-        },
-        persons=pybtex.database.OrderedCaseInsensitiveDict(
-            {
-                "author": [
-                    pybtex.database.Person("Schlömer, Nico"),
-                    pybtex.database.Person("Iovene, Valentin"),
-                ]
-            }
-        ),
-    )
-    citekey = _create_citekey_for_entry(entry)
-    assert citekey == "schlomer2021"

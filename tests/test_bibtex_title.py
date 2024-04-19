@@ -1,6 +1,6 @@
 import pytest
 
-import betterbib
+import bibfmt
 
 
 @pytest.mark.parametrize(
@@ -45,4 +45,4 @@ import betterbib
     ],
 )
 def test_translate_title(string, ref):
-    assert betterbib.tools._translate_title(string) == ref
+    assert bibfmt.tools._translate_title(string) == ref

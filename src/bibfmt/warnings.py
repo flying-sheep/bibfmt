@@ -14,9 +14,3 @@ class UnsupportedBibLaTeXType(UnsupportedType):
     """Warning for an unsupported BibLaTeX type"""
 
     pass
-
-
-class UnsupportedCrossRefType(UnsupportedType):
-    """Warning for an unsupported CrossRef type"""
-
-    pass

@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import configparser
 import re
 import sys
 from copy import deepcopy
-from pathlib import Path
 from warnings import warn
 
-import appdirs
 import requests
-import tomli
 
 # for enhanced error messages when parsing
 from pybtex.database import Entry
@@ -17,7 +13,6 @@ from pybtex.database.input import bibtex
 from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import unicode_to_latex
 
-from .__about__ import __version__
 from .errors import UniqueError
 
 
@@ -96,51 +91,6 @@ def translate_month(key: str):
             return None
 
     return ' # "-" # '.join(strings)
-
-
-def _get_config_data() -> tuple[list[str], list[str]]:
-    _config_dir = Path(appdirs.user_config_dir("betterbib"))
-
-    ini_config = _config_dir / "config.ini"
-    toml_config = _config_dir / "config.toml"
-
-    add_list = []
-    remove_list = []
-
-    if toml_config.exists():
-        with open(toml_config, "rb") as f:
-            config_data = tomli.load(f)
-
-        try:
-            add_list = config_data["DICTIONARY"]["add"]
-        except KeyError:
-            pass
-
-        try:
-            remove_list = config_data["DICTIONARY"]["remove"]
-        except KeyError:
-            pass
-
-    elif ini_config.exists():
-        warn(
-            f"betterbib INI ({ini_config}) config is deprecated. "
-            + "Please convert to TOML."
-        )
-
-        config = configparser.ConfigParser()
-        config.read(ini_config)
-        try:
-            add_list = config.get("DICTIONARY", "add").split(",")
-        except (configparser.NoSectionError, configparser.NoOptionError):
-            # No section: 'DICTIONARY', No option 'add' in section: 'DICTIONARY'
-            pass
-
-        try:
-            remove_list = config.get("DICTIONARY", "remove").split(",")
-        except (configparser.NoSectionError, configparser.NoOptionError):
-            pass
-
-    return add_list, remove_list
 
 
 def _translate_word(word, d):
@@ -453,7 +403,7 @@ def dict_to_string(
             string
     """
     # Write header to the output file.
-    segments = [f"%comment{{This file was created with betterbib v{__version__}.}}\n"]
+    segments = []
 
     delimiters = {"braces": ("{", "}"), "quotes": ('"', '"')}[delimiter_type]
 

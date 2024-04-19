@@ -1,11 +1,3 @@
-*.bib
-*.pyc
-README.rst
-build/
-dist/
-example/
-betterbib.egg-info/
-.cache/
-.pytest_cache/
-.tox/
-*.sqlite
+__pycache__/
+/dist/
+/*cache

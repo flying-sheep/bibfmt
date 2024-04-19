@@ -7,8 +7,6 @@ import argparse
 import re
 import sys
 
-from .. import __about__
-
 
 def main(argv=None):
     parser = _get_parser()
@@ -224,8 +222,7 @@ def _get_parser():
         "-v",
         "--version",
         help="display version information",
-        action="version",
-        version=f"betterbib {__about__.__version__}, Python {sys.version}",
+        action="version"
     )
     parser.add_argument("input", type=str, help="input LaTeX file")
     return parser

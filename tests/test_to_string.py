@@ -1,7 +1,7 @@
 import pytest
 from pybtex.database import Entry, Person
 
-import betterbib
+import bibfmt
 
 
 @pytest.mark.parametrize(
@@ -78,4 +78,4 @@ import betterbib
     ],
 )
 def test_cli_format(ref_entry, ref_str):
-    assert betterbib.pybtex_to_bibtex_string(ref_entry, "foobar") == "\n".join(ref_str)
+    assert bibfmt.pybtex_to_bibtex_string(ref_entry, "foobar") == "\n".join(ref_str)
