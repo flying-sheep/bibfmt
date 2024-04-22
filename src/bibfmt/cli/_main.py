@@ -35,17 +35,14 @@ def run(args: FormatArgs) -> None:
         if args.drop:
             data = filter_fields(data, args.drop)
 
-        # Use an ordered dictionary to make sure that the entries are written out
-        # sorted by their BibTeX key if demanded.
-        tuples = data.entries.items()
-        if args.sort_by_bibkey:
-            tuples = sorted(data.entries.items())
-
-        d = dict(tuples)
-        if False:  # TODO(flying-sheep): Add parameter  # noqa: TD003
+        d = dict(data.entries)
+        if False:  # TODO(flying-sheep): Add option  # noqa: TD003
             preserve_title_capitalization(d)
         adapt_doi_urls(d, args.doi_url_type)
         set_page_range_separator(d, "--")
+
+        if args.sort_by_bibkey:
+            d = dict(sorted(d.items()))
 
         string = dict_to_string(
             d,

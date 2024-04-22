@@ -6,15 +6,15 @@ import contextlib
 import logging
 import re
 import sys
+from collections.abc import Iterable
 from copy import deepcopy
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from warnings import warn
 
 import requests
-
-# for enhanced error messages when parsing
+from pybtex.database import Person
 from pybtex.database.input import bibtex
 from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import unicode_to_latex
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from collections.abc import Set as AbstractSet
     from typing import IO, Literal
 
-    from pybtex.database import BibliographyData, Entry, Person
+    from pybtex.database import BibliographyData, Entry
 
 
 @cache
@@ -57,14 +57,14 @@ def pybtex_to_dict(entry: Entry) -> dict[str, str]:
     transform = unicode_to_latex
     assert entry.persons is not None  # noqa: S101
     assert entry.fields is not None  # noqa: S101
-    for key, persons in entry.persons.items():
+    for key, persons in cast(dict[str, Iterable[Person]], entry.persons).items():
         d[key.lower()] = [
             {
-                "first": [transform(string) for string in p.first_names],
-                "middle": [transform(string) for string in p.middle_names],
-                "prelast": [transform(string) for string in p.prelast_names],
-                "last": [transform(string) for string in p.last_names],
-                "lineage": [transform(string) for string in p.lineage_names],
+                "first": [transform(string) for string in p.first_names or ()],
+                "middle": [transform(string) for string in p.middle_names or ()],
+                "prelast": [transform(string) for string in p.prelast_names or ()],
+                "last": [transform(string) for string in p.last_names or ()],
+                "lineage": [transform(string) for string in p.lineage_names or ()],
             }
             for p in persons
         ]
@@ -81,18 +81,8 @@ def translate_month(key: str) -> str | None:
     Try to handle most of this here.
     """
     months = [
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "may",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
+        *("jan", "feb", "mar", "apr", "may", "jun"),
+        *("jul", "aug", "sep", "oct", "nov", "dec"),
     ]
 
     # Sometimes, the key is just a month
@@ -245,7 +235,7 @@ def pybtex_to_bibtex_string(
         keys = sorted(keys)
 
     for key in keys:
-        value = entry.fields[key]
+        value: str = entry.fields[key]
 
         # Always make keys lowercase
         key = key.lower()  # noqa: PLW2901
