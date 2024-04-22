@@ -45,6 +45,7 @@ class FormattingParserArgs(argparse.Namespace):
 
     sort_by_bibkey: bool
     indent: int | Literal["tab"]
+    align: int
     delimiter_type: Literal["braces", "quotes"]
     doi_url_type: Literal["unchanged", "new", "short"]
     page_range_separator: str
@@ -87,11 +88,17 @@ def add_formatting_parser_arguments(parser: argparse.ArgumentParser) -> None:
         ),
     )
     formatting_group.add_argument(
+        "--align",
+        type=int,
+        default=14,
+        help="align the fields to maximally this number of columns (default: 14)",
+    )
+    formatting_group.add_argument(
         "-d",
         "--delimiter-type",
         choices=["braces", "quotes"],
         default="braces",
-        help=("which delimiters to use in the output file (default: braces {...})"),
+        help="which delimiters to use in the output file (default: braces {...})",
     )
     formatting_group.add_argument(
         "--doi-url-type",
@@ -107,5 +114,6 @@ def add_formatting_parser_arguments(parser: argparse.ArgumentParser) -> None:
         "--page-range-separator",
         type=str,
         default="--",
+        metavar="SEP",
         help="page range separator (default: --)",
     )
