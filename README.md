@@ -23,7 +23,8 @@ options:
 
 Formatting:
   -b, --sort-by-bibkey  sort entries by BibTeX key (default: false)
-  -t, --tab-indent      use tabs for indentation (default: false)
+  --indent INDENT       how to indent the entries.
+                        Specify e.g. `4` for 4 spaces or `tab` (default: 2 spaces)
   -d {braces,quotes}, --delimiter-type {braces,quotes}
                         which delimiters to use in the output file (default: braces {...})
   --doi-url-type {unchanged,new,short}
