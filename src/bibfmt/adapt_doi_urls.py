@@ -8,13 +8,14 @@ from . import tools
 
 
 if TYPE_CHECKING:
+    from collections.abc import MutableMapping
     from typing import Callable, Literal
 
     from pybtex.database import Entry
 
 
 def adapt_doi_urls(
-    d: dict[str, Entry], doi_url_type: Literal["new", "short", "unchanged"]
+    d: MutableMapping[str, Entry], doi_url_type: Literal["new", "short", "unchanged"]
 ) -> None:
     """Adapt DOI URLs."""
     if doi_url_type == "new":
@@ -36,7 +37,7 @@ def adapt_doi_urls(
 
 
 def _update_doi_url(
-    d: dict[str, Entry], url_from_doi: Callable[[str], str | None]
+    d: MutableMapping[str, Entry], url_from_doi: Callable[[str], str | None]
 ) -> None:
     for bib_id, value in d.items():
         assert value.fields is not None  # noqa: S101

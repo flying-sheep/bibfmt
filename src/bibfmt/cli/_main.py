@@ -23,6 +23,8 @@ from .helpers import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from pybtex.database import Entry
+
 
 class FormatArgs(FileParserArgs, FormattingParserArgs):
     drop: list[str]
@@ -35,11 +37,11 @@ def run(args: FormatArgs) -> None:
         if args.drop:
             data = filter_fields(data, args.drop)
 
-        d = dict(data.entries)
+        d: dict[str, Entry] = dict(data.entries)
         if False:  # TODO(flying-sheep): Add option  # noqa: TD003
             preserve_title_capitalization(d)
         adapt_doi_urls(d, args.doi_url_type)
-        set_page_range_separator(d, "--")
+        set_page_range_separator(d, args.page_range_separator)
 
         if args.sort_by_bibkey:
             d = dict(sorted(d.items()))

@@ -21,7 +21,7 @@ from pylatexenc.latexencode import unicode_to_latex
 
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, MutableMapping, Sequence
     from collections.abc import Set as AbstractSet
     from typing import IO, Literal
 
@@ -167,8 +167,8 @@ def preserve_title_capitalization(d: dict[str, Entry]) -> None:
             warn(f"'entry' {entry} has no title", stacklevel=1)
 
 
-def set_page_range_separator(d: dict[str, Entry], string: str) -> None:
-    """Replace any number of dashes (hypen, en, em, etc.) by page_range_separator.
+def set_page_range_separator(d: MutableMapping[str, Entry], string: str) -> None:
+    """Replace any number of dashes (hyphen, en, em, etc.) by page_range_separator.
 
     See Also
     --------
@@ -304,7 +304,7 @@ def _get_person_str(p: Person) -> str:
 # This used to be a write() function, but beware of exceptions! Files would get
 # unintentionally overridden, see <https://github.com/nschloe/betterbib/issues/184>
 def dict_to_string(
-    od: dict[str, Entry],
+    od: Mapping[str, Entry],
     delimiter_type: Literal["braces", "quotes"],
     *,
     indent: int | Literal["tab"] = 2,
