@@ -1,11 +1,15 @@
+"""Assorted functions."""
+
 from __future__ import annotations
 
+import contextlib
+import logging
 import re
 import sys
 from copy import deepcopy
 from functools import cache
 from pathlib import Path
-from typing import IO, TYPE_CHECKING
+from typing import TYPE_CHECKING
 from warnings import warn
 
 import requests
@@ -15,16 +19,18 @@ from pybtex.database.input import bibtex
 from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import unicode_to_latex
 
-from .errors import UniqueError
 
 if TYPE_CHECKING:
-    from collections.abc import Set
+    from collections.abc import Sequence
+    from collections.abc import Set as AbstractSet
+    from typing import IO
 
-    from pybtex.database import Entry
+    from pybtex.database import BibliographyData, Entry, Person
 
 
 @cache
-def get_dict() -> Set[str]:
+def get_dict() -> AbstractSet[str]:
+    """Get set of words from the web2 dictionary."""
     from english_words import get_english_words_set
 
     return get_english_words_set(["web2"])
@@ -35,7 +41,7 @@ def decode(entry: Entry) -> Entry:
     translator = LatexNodes2Text()
     # Perform a deepcopy, otherwise the input entry will get altered
     out = deepcopy(entry)
-    assert out.fields is not None
+    assert out.fields is not None  # noqa: S101
     for key, value in out.fields.items():
         if key == "url":
             # The url can contain special LaTeX characters (like %) and that's fine
@@ -44,11 +50,13 @@ def decode(entry: Entry) -> Entry:
     return out
 
 
-def pybtex_to_dict(entry):
-    """dict representation of BibTeX entry."""
+def pybtex_to_dict(entry: Entry) -> dict[str, str]:
+    """Represent BibTeX entry as dict."""
     d = {}
     d["genre"] = entry.type
     transform = unicode_to_latex
+    assert entry.persons is not None  # noqa: S101
+    assert entry.fields is not None  # noqa: S101
     for key, persons in entry.persons.items():
         d[key.lower()] = [
             {
@@ -65,8 +73,10 @@ def pybtex_to_dict(entry):
     return d
 
 
-def translate_month(key: str):
-    """The month value can take weird forms. Sometimes, it's given as an int, sometimes
+def translate_month(key: str) -> str | None:
+    """Unify month formats.
+
+    The month value can take weird forms. Sometimes, it's given as an int, sometimes
     as a string representing an int, and sometimes the name of the month is spelled out.
     Try to handle most of this here.
     """
@@ -101,15 +111,14 @@ def translate_month(key: str):
         if month in months:
             strings.append(month)
         else:
-            print(f"Unknown month value '{key}'. Skipping.")
+            logging.warning(f"Unknown month value {key!r}. Skipping.")
             return None
 
     return ' # "-" # '.join(strings)
 
 
-def _translate_word(word: str):
-    # Check if the word needs to be protected by curly braces to prevent
-    # recapitalization.
+def _translate_word(word: str) -> str:
+    """Check if the word needs to be protected by `{}` to prevent recapitalization."""
     if (
         not word
         or word.count("{") != word.count("}")
@@ -126,19 +135,18 @@ def _translate_word(word: str):
         needs_protection = (
             any(char.isupper() for char in word) and word.lower() not in english
         )
-        print(word, needs_protection)
 
     if needs_protection:
         return f"{{{word}}}"
     return word
 
 
-def _translate_title(val: str):
-    """The capitalization of BibTeX entries is handled by the style, so names (Newton)
+def _translate_title(val: str) -> str:
+    """{}-protect parts whose capitalization should not change.
+
+    The capitalization of BibTeX entries is handled by the style, so names (Newton)
     or abbreviations (GMRES) may not be capitalized. This is unless they are wrapped in
     curly braces.
-    This function takes a raw title string as input and {}-protects those parts whose
-    capitalization should not change.
     """
     # If the title is completely capitalized, it's probably by mistake.
     if val == val.upper():
@@ -159,7 +167,9 @@ def _translate_title(val: str):
 
 
 def preserve_title_capitalization(d: dict[str, Entry]) -> None:
-    for _, entry in d.items():
+    """Preserve title capitalization."""
+    for entry in d.values():
+        assert entry.fields is not None  # noqa: S101
         try:
             title = entry.fields["title"]
             entry.fields["title"] = _translate_title(title)
@@ -168,76 +178,77 @@ def preserve_title_capitalization(d: dict[str, Entry]) -> None:
 
 
 def set_page_range_separator(d: dict[str, Entry], string: str) -> None:
-    # Replace any number of dashes (hypen, en dash, em dash etc.) by
-    # page_range_separator; see
-    # <https://tex.stackexchange.com/a/58671/13262>
-    # <https://jkorpela.fi/dashes.html>
-    chars = "".join(
-        [
-            "-",
-            "\N{HYPHEN}",
-            "\N{NON-BREAKING HYPHEN}",
-            "\N{FIGURE DASH}",
-            "\N{EN DASH}",
-            "\N{EM DASH}",
-            "\N{HORIZONTAL BAR}",
-        ]
+    """Replace any number of dashes (hypen, en, em, etc.) by page_range_separator.
+
+    See Also
+    --------
+    - <https://tex.stackexchange.com/a/58671/13262>
+    - <https://jkorpela.fi/dashes.html>
+
+    """
+    chars = (
+        "-"
+        "\N{HYPHEN}"
+        "\N{NON-BREAKING HYPHEN}"
+        "\N{FIGURE DASH}"
+        "\N{EN DASH}"
+        "\N{EM DASH}"
+        "\N{HORIZONTAL BAR}"
     )
-    for _, entry in d.items():
+    for entry in d.values():
+        assert entry.fields is not None  # noqa: S101
         if "pages" not in entry.fields:
             continue
         entry.fields["pages"] = re.sub(f"[{chars}]+", string, entry.fields["pages"])
 
 
 def remove_multiple_spaces(d: dict[str, Entry]) -> None:
-    for _, entry in d.items():
+    """Collapse sequences of spaces."""
+    for entry in d.values():
+        assert entry.fields is not None  # noqa: S101
         for key, value in entry.fields.items():
             if key in ["url", "doi"]:
                 continue
             try:
-                value = re.sub(" +", " ", value)
+                new_value = re.sub(" +", " ", value)
                 # Remove trailing spaces
-                value = value.rstrip()
+                new_value = new_value.rstrip()
             except TypeError:
                 # expected unicode for encode input, but got int instead
                 pass
             else:
-                entry.fields[key] = value
+                entry.fields[key] = new_value
 
 
 def pybtex_to_bibtex_string(
     entry: Entry,
     bibtex_key: str,
+    *,
     delimiters: tuple[str, str] = ("{", "}"),
     indent: str = " ",
     sort: bool = False,
-    unicode: bool = True,
 ) -> str:
-    """String representation of BibTeX entry."""
+    """Represent BibTeX entry as str."""
     out = f"@{entry.type}{{{bibtex_key},\n{indent}"
     content = []
 
     left, right = delimiters
 
-    assert entry.persons is not None
+    assert entry.persons is not None  # noqa: S101
     for key, persons in entry.persons.items():
         persons_str = " and ".join([_get_person_str(p) for p in persons])
-        if not unicode:
-            persons_str = unicode_to_latex(persons_str)
         content.append(f"{key.lower()} = {left}{persons_str}{right}")
 
-    assert entry.fields is not None
+    assert entry.fields is not None  # noqa: S101
     keys = entry.fields.keys()
     if sort:
         keys = sorted(keys)
-
-    # translator = LatexNodes2Text()
 
     for key in keys:
         value = entry.fields[key]
 
         # Always make keys lowercase
-        key = key.lower()
+        key = key.lower()  # noqa: PLW2901
 
         if key == "month":
             month_string = translate_month(value)
@@ -245,15 +256,8 @@ def pybtex_to_bibtex_string(
                 content.append(f"{key} = {month_string}")
             continue
 
-        try:
+        with contextlib.suppress(AttributeError):
             value = value.replace("\N{REPLACEMENT CHARACTER}", "?")
-        except AttributeError:
-            pass
-
-        # skip title; otherwise, the "protective" braces (e.g., "{Krylov}") get
-        # escaped as well
-        if not unicode and key != "title":
-            value = unicode_to_latex(value)
 
         if value is not None:
             content.append(f"{key} = {left}{value}{right}")
@@ -264,7 +268,7 @@ def pybtex_to_bibtex_string(
     return out
 
 
-def doi_from_url(url):
+def doi_from_url(url: str) -> str | None:
     """See if this is a DOI URL and return the DOI."""
     m = re.match("https?://(?:dx\\.)?doi\\.org/(.*)", url)
     if m:
@@ -272,9 +276,10 @@ def doi_from_url(url):
     return None
 
 
-def get_short_doi(doi):
-    url = "http://shortdoi.org/" + doi
-    r = requests.get(url, params={"format": "json"})
+def get_short_doi(doi: str) -> str | None:
+    """Possibly shorten doi."""
+    url = f"http://shortdoi.org/{doi}"
+    r = requests.get(url, params={"format": "json"}, timeout=5)
     if not r.ok:
         return None
 
@@ -285,7 +290,7 @@ def get_short_doi(doi):
     return data["ShortDOI"]
 
 
-def _get_person_str(p):
+def _get_person_str(p: Person) -> str:
     out = ", ".join(
         filter(
             None,
@@ -310,113 +315,28 @@ def _get_person_str(p):
     return out
 
 
-def prettyprint_result(res):
-    string = []
-    if "score" in res:
-        string.append(f"score:     {res['score']}")
-    if "type" in res:
-        string.append(f"type:      {res['type']}")
-    if "title" in res:
-        string.append(f"title:     {res['title'][0]}")
-    if "DOI" in res:
-        string.append(f"DOI:       {res['DOI']}")
-    if "page" in res:
-        string.append(f"page:      {res['page']}")
-    if "publisher" in res:
-        string.append(f"publisher: {res['publisher']}")
-    if "container-title" in res:
-        string.append(f"container: {res['container-title'][0]}")
-    if "volume" in res:
-        string.append(f"volume:    {res['volume']}")
-    if "issue" in res:
-        string.append(f"issue:     {res['issue']}")
-    if "reference-count" in res:
-        string.append(f"ref count: {res['reference-count']}")
-    if "language" in res:
-        string.append(f"language:  {res['language']}")
-    return "\n".join(string)
-
-
-def heuristic_unique_result(results, d):
-    # Q: How to we find the correct solution if there's more than one search result?
-    # As a heuristic, assume that the top result is the unique answer if its score is at
-    # least 1.5 times the score of the the second-best result.
-    for score in ["score", "@score"]:
-        try:
-            if float(results[0][score]) > 1.5 * float(results[1][score]):
-                return results[0]
-        except KeyError:
-            pass
-
-    # If that doesn't work, check if the DOI matches exactly with the input.
-    if "doi" in d:
-        # sometimes, the doi field contains a doi url
-        doi = doi_from_url(d["doi"])
-        if not doi:
-            doi = d["doi"]
-        for result in results:
-            for doi_key in "doi", "DOI":
-                try:
-                    if result[doi_key].lower() == doi.lower():
-                        return result
-                except KeyError:
-                    pass
-
-    # If that doesn't work, check if the title appears in the input.
-    if "title" in d:
-        for result in results:
-            if (
-                "title" in result
-                and result["title"]
-                and result["title"][0].lower() in d["title"].lower()
-            ):
-                return result
-
-    # If that doesn't work, check if the page range matches exactly with the input.
-    if "pages" in d:
-        for result in results:
-            if "page" in result and result["page"] == d["pages"]:
-                return result
-
-    # If that doesn't work, check if the second entry is a JSTOR copy of the original
-    # article -- yes, that happens --, and take the first one.
-    if (
-        "publisher" in results[1]
-        and results[1]["publisher"] == "JSTOR"
-        and "title" in results[0]
-        and "title" in results[1]
-        and results[0]["title"][0].lower() == results[1]["title"][0].lower()
-    ):
-        return results[0]
-
-    pretty_res = [prettyprint_result(results[0]), prettyprint_result(results[1])]
-    raise UniqueError(
-        "Could not find a positively unique match. "
-        f"Got\n\n{pretty_res[0]}\n\nand\n\n{pretty_res[1]}\n"
-    )
-
-
 # This used to be a write() function, but beware of exceptions! Files would get
 # unintentionally overridden, see <https://github.com/nschloe/betterbib/issues/184>
 def dict_to_string(
     od: dict[str, Entry],
     delimiter_type: str,
+    *,
     tab_indent: bool,
     preamble: list | None = None,
-    unicode: bool = True,
 ) -> str:
-    """
-    Creates a string representing the bib entries
+    """Create a string representing the bib entries.
 
-        Parameters:
-            od (dict): dictionary of bibtex entries
-            outfile (FileType("r")): file to write to (default: None)
-            delimiter_type (str): delimiter to use to mark strings
-            tab_indent (bool): whether to use tabs to indent the entries
-            preamble (list): list of preamble commands
+    Parameters
+    ----------
+    od
+        dictionary of bibtex entries
+    delimiter_type
+        delimiter to use to mark strings
+    tab_indent
+        whether to use tabs to indent the entries
+    preamble
+        list of preamble commands
 
-        Returns:
-            string
     """
     # Write header to the output file.
     segments = []
@@ -432,11 +352,7 @@ def dict_to_string(
     # Add segments for each bibtex entry in order
     segments += [
         pybtex_to_bibtex_string(
-            d,
-            bib_id,
-            delimiters=delimiters,
-            indent="\t" if tab_indent else " ",
-            unicode=unicode,
+            d, bib_id, delimiters=delimiters, indent="\t" if tab_indent else " "
         )
         for bib_id, d in od.items()
     ]
@@ -444,10 +360,14 @@ def dict_to_string(
     return "\n\n".join(segments) + "\n"
 
 
-def merge(entry1, entry2):
+def merge(entry1: Entry, entry2: Entry | None) -> Entry:
     """Create a merged BibTeX entry with the data from entry2 taking precedence."""
     out = entry1
     if entry2 is not None:
+        assert out.persons is not None  # noqa: S101
+        assert out.fields is not None  # noqa: S101
+        assert entry2.fields is not None  # noqa: S101
+
         if entry2.type:
             out.type = entry2.type
 
@@ -463,40 +383,50 @@ def merge(entry1, entry2):
     return out
 
 
-def filter_fields(data, excludes=None):
-    excludes = excludes or []
+def filter_fields(
+    data: BibliographyData, excludes: Sequence[str] = ()
+) -> BibliographyData:
+    """Remove fields from bibtex entries."""
+    entry: Entry
     for entry in data.entries.values():
         if entry.fields:
             entry.fields = {k: v for k, v in entry.fields.items() if k not in excludes}
     return data
 
 
-def bibtex_parser(infile: IO[str]):
-    """
-    Returns the parsed bibtex data and adds context to the exception
+def bibtex_parser(infile: IO[str]) -> BibliographyData:
+    """Return the parsed bibtex data and adds context to the exception.
 
-        Parameters:
-            infile (FileType("r")): file to be parsed
+    Parameters
+    ----------
+    infile
+        file to be parsed
 
-        Returns:
-            data (dict): bibtex entries
+    Returns
+    -------
+    bibtex entries
+
     """
     try:
         data = bibtex.Parser().parse_file(infile)
-        return data
 
     except Exception as e:
-        print(f"There was an error when parsing {infile.name}")
-        raise e
+        getattr(e, "add_note", print)(f"There was an error when parsing {infile.name}")
+        raise
+    else:
+        return data
 
 
-def write(string: str, outfile: IO[str] | None = None):
-    """
-    Writes a string to a BibTeX file
+def write(string: str, outfile: IO[str] | None = None) -> None:
+    """Write a string to a BibTeX file.
 
-        Parameters:
-            string (String): string to write
-            outfile (FileType("r")): file to write to (default: None)
+    Parameters
+    ----------
+    string
+        string to write
+    outfile
+        file to write to (default: None)
+
     """
     if outfile:
         with Path(outfile.name).open("w") as f:

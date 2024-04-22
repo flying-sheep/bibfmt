@@ -1,14 +1,22 @@
+"""Adapt DOI URLs."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from . import tools
 
+
 if TYPE_CHECKING:
+    from typing import Callable, Literal
+
     from pybtex.database import Entry
 
 
-def adapt_doi_urls(d: dict[str, Entry], doi_url_type: str) -> None:
+def adapt_doi_urls(
+    d: dict[str, Entry], doi_url_type: Literal["new", "short", "unchanged"]
+) -> None:
+    """Adapt DOI URLs."""
     if doi_url_type == "new":
         _update_doi_url(d, lambda doi: f"https://doi.org/{doi}")
 
@@ -22,12 +30,16 @@ def adapt_doi_urls(d: dict[str, Entry], doi_url_type: str) -> None:
 
         _update_doi_url(d, update_to_short_doi)
 
-    else:
-        assert doi_url_type == "unchanged"
+    elif doi_url_type != "unchanged":
+        msg = f"Unknown doi_url_type {doi_url_type}"
+        raise AssertionError(msg)
 
 
-def _update_doi_url(d: dict[str, Entry], url_from_doi: Callable[[str], str]) -> None:
+def _update_doi_url(
+    d: dict[str, Entry], url_from_doi: Callable[[str], str | None]
+) -> None:
     for bib_id, value in d.items():
+        assert value.fields is not None  # noqa: S101
         if "url" not in value.fields:
             continue
 

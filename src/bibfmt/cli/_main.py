@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import argparse
+from typing import TYPE_CHECKING
 
 from . import _format
 
 
-def main(argv=None):
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+
+def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="Format BibTeX files.",
         formatter_class=argparse.RawTextHelpFormatter,

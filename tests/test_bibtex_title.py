@@ -58,5 +58,5 @@ import bibfmt
         pytest.param("A \\LaTeX title", "A \\LaTeX title", id="macro"),
     ],
 )
-def test_translate_title(string, ref):
+def test_translate_title(string: str, ref: str) -> None:
     assert bibfmt.tools._translate_title(string) == ref

@@ -82,5 +82,5 @@ import bibfmt
         ),
     ],
 )
-def test_cli_format(ref_entry, ref_str):
+def test_cli_format(ref_entry: Entry, ref_str: list[str]) -> None:
     assert bibfmt.pybtex_to_bibtex_string(ref_entry, "foobar") == "\n".join(ref_str)

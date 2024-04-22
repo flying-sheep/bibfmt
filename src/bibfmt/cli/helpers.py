@@ -1,15 +1,40 @@
+"""Helper functions for the CLI."""
+
 from __future__ import annotations
 
 import argparse
 import sys
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from typing import IO, Literal
+
+    class FileParserArgs(argparse.Namespace):
+        """File handling arguments."""
+
+        infiles: Sequence[IO[str]]
+        in_place: bool
+
+    class FormattingParserArgs(argparse.Namespace):
+        """Bibtex formatting arguments."""
+
+        sort_by_bibkey: bool
+        tab_indent: bool
+        delimiter_type: Literal["braces", "quotes"]
+        doi_url_type: Literal["unchanged", "new", "short"]
+        page_range_separator: str
 
 
 def add_file_parser_arguments(parser: argparse.ArgumentParser) -> None:
-    """
-    Adds the file handling arguments to an argparse parser
+    """Add the file handling arguments to an argparse parser.
 
-        Parameters:
-            parser (argparse.ArgumentParser): ArgumentParser
+    Parameters
+    ----------
+    parser
+        ArgumentParser
+
     """
     parser.add_argument(
         "infiles",
@@ -24,11 +49,13 @@ def add_file_parser_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def add_formatting_parser_arguments(parser: argparse.ArgumentParser) -> None:
-    """
-    Adds the bibtex formatting arguments to an argparse parser
+    """Add the bibtex formatting arguments to an argparse parser.
 
-        Parameters:
-            parser (argparse.ArgumentParser): ArgumentParser
+    Parameters
+    ----------
+    parser
+        ArgumentParser
+
     """
     formatting_group = parser.add_argument_group("Formatting")
     formatting_group.add_argument(

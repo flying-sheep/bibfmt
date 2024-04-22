@@ -7,6 +7,7 @@ import pytest
 
 import bibfmt
 
+
 TEST_BIBTEXT_PREAMBLE_UNFORMATTED = """\
 @preamble{"\\RequirePackage{biblatex}"}
 @preamble{"\\addbibressource{dependend.bib}"}
@@ -55,7 +56,9 @@ TEST_BIBTEXT_PREAMBLE_FORMATTED_DROP = """\
         ),
     ],
 )
-def test_cli_format(ref_in: str, ref_out: str, capsys: pytest.CaptureFixture[str]):
+def test_cli_format(
+    ref_in: str, ref_out: str, capsys: pytest.CaptureFixture[str]
+) -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         infile = Path(tmpdir) / "test.bib"
 
