@@ -6,7 +6,7 @@ import bibfmt
 
 
 @pytest.mark.parametrize(
-    "string,ref",
+    ("string", "ref"),
     [
         pytest.param(
             "The Magnus expansion and some of its applications",
@@ -48,7 +48,7 @@ import bibfmt
             "Dash-Dash Double--Dash Triple---Dash",
             id="dashes",
         ),
-        pytest.param("x: {X}", "x: {X}"),
+        pytest.param("x: {X}", "x: {X}", id="colon_pre_fmt"),
         pytest.param(
             "{Aaa ${\\text{Pt/Co/AlO}}_{x}$ aaa bbb}",
             "{Aaa {${\\text{Pt/Co/AlO}}_{x}$} aaa bbb}",

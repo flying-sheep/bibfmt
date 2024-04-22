@@ -55,6 +55,7 @@ select = [
   "C4",  # Comprehensions
   "UP",  # pyupgrade
   "I",   # isort
+  "PT",  # Pytest style
   "TCH", # manage type checking blocks
   "ICN", # Follow import conventions
   "PTH", # Pathlib instead of os.path

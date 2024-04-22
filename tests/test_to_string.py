@@ -7,7 +7,7 @@ import bibfmt
 
 
 @pytest.mark.parametrize(
-    "ref_entry,ref_str",
+    ("ref_entry", "ref_str"),
     [
         pytest.param(
             Entry(

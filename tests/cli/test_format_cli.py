@@ -7,33 +7,36 @@ import pytest
 
 import bibfmt
 
-TEST_BIBTEXT_PREAMBLE_UNFORMATTED = (
-    '@preamble{"\\RequirePackage{biblatex}"}\n'
-    '@preamble{"\\addbibressource{dependend.bib}"}\n'
-    "@article{foobar,\n"
-    "doi={foobar},\n"
-    "url = {https://doi.org/foobar}\n"
-    "}"
-)
+TEST_BIBTEXT_PREAMBLE_UNFORMATTED = """\
+@preamble{"\\RequirePackage{biblatex}"}
+@preamble{"\\addbibressource{dependend.bib}"}
+@article{foobar,
+doi={foobar},
+url = {https://doi.org/foobar}
+}\
+"""
 
-TEST_BIBTEXT_PREAMBLE_FORMATTED_KEEP = (
-    '@preamble{"\\RequirePackage{biblatex}"}\n'
-    "\n"
-    '@preamble{"\\addbibressource{dependend.bib}"}\n'
-    "\n"
-    "@article{foobar,\n"
-    " doi = {foobar},\n"
-    " url = {https://doi.org/foobar},\n"
-    "}\n"
-)
+TEST_BIBTEXT_PREAMBLE_FORMATTED_KEEP = """\
+@preamble{"\\RequirePackage{biblatex}"}
 
-TEST_BIBTEXT_PREAMBLE_FORMATTED_DROP = (
-    "@article{foobar,\n doi = {foobar},\n url = {https://doi.org/foobar},\n}\n"
-)
+@preamble{"\\addbibressource{dependend.bib}"}
+
+@article{foobar,
+ doi = {foobar},
+ url = {https://doi.org/foobar},
+}
+"""
+
+TEST_BIBTEXT_PREAMBLE_FORMATTED_DROP = """\
+@article{foobar,
+ doi = {foobar},
+ url = {https://doi.org/foobar},
+}
+"""
 
 
 @pytest.mark.parametrize(
-    "ref_in,ref_out",
+    ("ref_in", "ref_out"),
     [
         pytest.param(
             TEST_BIBTEXT_PREAMBLE_UNFORMATTED,
@@ -52,7 +55,7 @@ TEST_BIBTEXT_PREAMBLE_FORMATTED_DROP = (
         ),
     ],
 )
-def test_cli_format(ref_in, ref_out, capsys):
+def test_cli_format(ref_in: str, ref_out: str, capsys: pytest.CaptureFixture[str]):
     with tempfile.TemporaryDirectory() as tmpdir:
         infile = Path(tmpdir) / "test.bib"
 
