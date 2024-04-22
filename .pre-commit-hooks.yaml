@@ -1,7 +1,7 @@
 ---
-- id: betterbib-format
-  name: Format bib-files
-  description: Format bib-files in a consistent manner
-  entry: betterbib format --in-place
+- id: bibfmt
+  name: Format bib files
+  description: Format bib files in a consistent manner
+  entry: bibfmt --in-place
   language: python
   files: '^.*\.bib$'

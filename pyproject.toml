@@ -1,6 +1,76 @@
-[build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
+[project]
+name = "bibfmt"
+version = "4.2.0"
+authors = [{ name = "Nico Schlömer", email = "nico.schloemer@gmail.com" }]
+description = "BibTeX formatter"
+urls.Code = "https://github.com/flying-sheep/bibfmt"
+urls.Issues = "https://github.com/flying-sheep/bibfmt/issues"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Utilities",
+]
+keywords = ["latex", "bibtex"]
+dependencies = [
+  "pybtex >=0.19.0",
+  "pylatexenc",
+  "requests",
+  "requests_cache",
+  "rich >=9.4.0",
+  "unidecode",
+  "english-words",
+]
+requires-python = ">=3.9"
 
-[tool.isort]
-profile = "black"
+[project.optional-dependencies]
+test = ["pytest", "pytest-codeblocks >= 0.12.2", "pytest-cov"]
+
+[project.scripts]
+bibfmt = "bibfmt.cli:main"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.envs.default]
+features = ["test"]
+
+[tool.ruff]
+src = ["src"]
+[tool.ruff.format]
+docstring-code-format = true
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "D203",   # prefer 0 blank lines before class docstring
+  "D213",   # prefer multiline docstring summary on first line
+  "ANN101", # don’t do type annotations for self in method
+  "C408",   # dict constructor usage is fine
+  "COM812", # Leave trailing comma to formatter
+  "FIX002", # “TODO” comments are fine
+  "G004",   # Use f-string in logging
+  "ISC001", # Leave single line string concat to formatter
+  "TID252", # relative imports are fine
+]
+allowed-confusables = ["’", "×"]
+[tool.ruff.lint.extend-per-file-ignores]
+"tests/*" = ["S101", "SLF001", "INP001", "D100", "D103"]
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+known-first-party = ["bibfmt"]
+required-imports = ["from __future__ import annotations"]
+[tool.ruff.lint.flake8-type-checking]
+strict = true
+exempt-modules = []
+
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling", "hatch-vcs"]

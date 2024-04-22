@@ -1,15 +1,29 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from ..adapt_doi_urls import adapt_doi_urls
 from ..tools import (
     bibtex_parser,
     dict_to_string,
     filter_fields,
+    preserve_title_capitalization,  # noqa: TCH001
     set_page_range_separator,
     write,
 )
 from .helpers import add_file_parser_arguments, add_formatting_parser_arguments
 
 
-def run(args):
+if TYPE_CHECKING:
+    import argparse
+
+    from .helpers import FileParserArgs, FormattingParserArgs
+
+    class FormatArgs(FileParserArgs, FormattingParserArgs):
+        drop: list[str]
+
+
+def run(args: FormatArgs) -> None:
     for infile in args.infiles:
         data = bibtex_parser(infile)
 
@@ -23,6 +37,8 @@ def run(args):
             tuples = sorted(data.entries.items())
 
         d = dict(tuples)
+        if False:  # TODO(flying-sheep): Add parameter  # noqa: TD003
+            preserve_title_capitalization(d)
         adapt_doi_urls(d, args.doi_url_type)
         set_page_range_separator(d, "--")
 
@@ -30,19 +46,16 @@ def run(args):
             d,
             args.delimiter_type,
             tab_indent=args.tab_indent,
-            # FIXME: use public argument when it becomes possible
-            preamble=data._preamble,
+            # TODO(nschloe): use public field when it becomes possible  # noqa: TD003
+            preamble=data._preamble,  # noqa: SLF001
         )
 
         write(string, infile if args.in_place else None)
 
 
-def add_args(parser):
+def add_args(parser: argparse.ArgumentParser) -> None:
     add_file_parser_arguments(parser)
     add_formatting_parser_arguments(parser)
 
-    parser.add_argument(
-        "--drop",
-        action="append",
-        help="drops field from bibtex entry if they exist, can be passed multiple times",
-    )
+    help_ = "drops field from bibtex entry if they exist, can be passed multiple times"
+    parser.add_argument("--drop", action="append", help=help_)

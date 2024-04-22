@@ -1,13 +1,15 @@
+from __future__ import annotations
+
 import pytest
 from pybtex.database import Entry, Person
 
-import betterbib
+import bibfmt
 
 
 @pytest.mark.parametrize(
-    "ref_entry,ref_str",
+    ("ref_entry", "ref_str"),
     [
-        (
+        pytest.param(
             Entry(
                 "article",
                 fields={
@@ -21,24 +23,24 @@ import betterbib
                 " url = {https://doi.org/foobar},",
                 "}",
             ],
+            id="basic",
         ),
-        # escape ampersand:
-        (
+        pytest.param(
             Entry("article", fields={"title": "Foo \\& Bar"}),
             ["@article{foobar,", " title = {Foo \\& Bar},", "}"],
+            id="escape_ampersand",
         ),
-        # escape command:
-        (
+        pytest.param(
             Entry("article", fields={"title": "Foo on \\LaTeX"}),
             ["@article{foobar,", " title = {Foo on \\LaTeX},", "}"],
+            id="escape_command",
         ),
-        # more empty space
-        (
+        pytest.param(
             Entry("article", fields={"title": "Foo \\ Bridge"}),
             ["@article{foobar,", " title = {Foo \\ Bridge},", "}"],
+            id="extra_space",
         ),
-        # encode url
-        (
+        pytest.param(
             Entry(
                 "misc",
                 fields={
@@ -52,8 +54,9 @@ import betterbib
                 " note = {Online; accessed 19-February-2019},",
                 "}",
             ],
+            id="encode_url",
         ),
-        (
+        pytest.param(
             Entry(
                 "misc",
                 fields={"doi": "10.1007/978-1-4615-7419-4_6"},
@@ -63,8 +66,9 @@ import betterbib
                 " doi = {10.1007/978-1-4615-7419-4_6},",
                 "}",
             ],
+            id="full_doi",
         ),
-        (
+        pytest.param(
             Entry(
                 "misc",
                 persons={"author": [Person("Doe, J. J.")]},
@@ -74,8 +78,9 @@ import betterbib
                 " author = {Doe, J. J.},",
                 "}",
             ],
+            id="author",
         ),
     ],
 )
-def test_cli_format(ref_entry, ref_str):
-    assert betterbib.pybtex_to_bibtex_string(ref_entry, "foobar") == "\n".join(ref_str)
+def test_cli_format(ref_entry: Entry, ref_str: list[str]) -> None:
+    assert bibfmt.pybtex_to_bibtex_string(ref_entry, "foobar") == "\n".join(ref_str)
