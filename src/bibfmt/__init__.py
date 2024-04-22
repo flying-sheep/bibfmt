@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from . import cli, errors
 from .adapt_doi_urls import adapt_doi_urls
 from .journal_abbrev import journal_abbrev

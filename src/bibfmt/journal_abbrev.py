@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from pybtex.database import Entry
+if TYPE_CHECKING:
+    from pybtex.database import Entry
 
 
 def journal_abbrev(
@@ -12,11 +14,11 @@ def journal_abbrev(
     custom_abbrev: str | None = None,
 ) -> None:
     this_dir = Path(__file__).resolve().parent
-    with open(this_dir / "data/journals.json") as f:
+    with (this_dir / "data/journals.json").open() as f:
         table = json.load(f)
 
     if custom_abbrev is not None:
-        with open(custom_abbrev) as f:
+        with Path(custom_abbrev).open() as f:
             table.update(json.load(f))
 
     if long_journal_names:

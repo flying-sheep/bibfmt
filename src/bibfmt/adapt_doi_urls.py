@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Callable
-
-from pybtex.database import Entry
+from typing import TYPE_CHECKING, Callable
 
 from . import tools
+
+if TYPE_CHECKING:
+    from pybtex.database import Entry
 
 
 def adapt_doi_urls(d: dict[str, Entry], doi_url_type: str) -> None:

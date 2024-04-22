@@ -1,16 +1,15 @@
+from __future__ import annotations
+
 import argparse
 import sys
 
 
-def add_file_parser_arguments(parser):
+def add_file_parser_arguments(parser: argparse.ArgumentParser) -> None:
     """
     Adds the file handling arguments to an argparse parser
 
         Parameters:
             parser (argparse.ArgumentParser): ArgumentParser
-
-        Returns:
-            parser (argparse.ArgumentParser): Containing the default file handling arguments
     """
     parser.add_argument(
         "infiles",
@@ -24,15 +23,12 @@ def add_file_parser_arguments(parser):
     )
 
 
-def add_formatting_parser_arguments(parser):
+def add_formatting_parser_arguments(parser: argparse.ArgumentParser) -> None:
     """
     Adds the bibtex formatting arguments to an argparse parser
 
         Parameters:
             parser (argparse.ArgumentParser): ArgumentParser
-
-        Returns:
-            parser (argparse.ArgumentParser): Containing the formatting arguments
     """
     formatting_group = parser.add_argument_group("Formatting")
     formatting_group.add_argument(

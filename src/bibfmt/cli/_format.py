@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ..adapt_doi_urls import adapt_doi_urls
 from ..tools import (
     bibtex_parser,
@@ -41,8 +43,5 @@ def add_args(parser):
     add_file_parser_arguments(parser)
     add_formatting_parser_arguments(parser)
 
-    parser.add_argument(
-        "--drop",
-        action="append",
-        help="drops field from bibtex entry if they exist, can be passed multiple times",
-    )
+    help = "drops field from bibtex entry if they exist, can be passed multiple times"
+    parser.add_argument("--drop", action="append", help=help)

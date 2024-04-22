@@ -3,8 +3,11 @@ Parses a number of bibitems into a proper BibTeX bibliography.  Since bibitems
 don't have semantic information, certain heuristics have to be applied.
 """
 
+from __future__ import annotations
+
 import argparse
 import re
+from pathlib import Path
 
 
 def main(argv=None):
@@ -187,13 +190,13 @@ def clean_bibitem_string(string):
     return out
 
 
-def extract_bibitems(filename):
-    """Parses `filename` and returns all bibitems from inside all
+def extract_bibitems(file_path: Path):
+    """Parses `file_path` and returns all bibitems from inside all
     `thebibliography` environments.
     """
     recording = False
     bibitems = []
-    with open(filename) as f:
+    with file_path.open() as f:
         for line in f:
             # Get first non-whitespace character
             m = re.match("^\\s*(\\S)", line)
@@ -220,5 +223,5 @@ def _get_parser():
     parser.add_argument(
         "-v", "--version", help="display version information", action="version"
     )
-    parser.add_argument("input", type=str, help="input LaTeX file")
+    parser.add_argument("input", type=Path, help="input LaTeX file")
     return parser

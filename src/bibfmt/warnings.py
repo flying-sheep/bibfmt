@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class UnsupportedType(Warning):
     """Base Warning for trying to handle an unsupported type"""
 

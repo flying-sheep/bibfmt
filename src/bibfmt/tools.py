@@ -3,17 +3,21 @@ from __future__ import annotations
 import re
 import sys
 from copy import deepcopy
+from pathlib import Path
+from typing import IO, TYPE_CHECKING
 from warnings import warn
 
 import requests
 
 # for enhanced error messages when parsing
-from pybtex.database import Entry
 from pybtex.database.input import bibtex
 from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import unicode_to_latex
 
 from .errors import UniqueError
+
+if TYPE_CHECKING:
+    from pybtex.database import Entry
 
 
 def decode(entry: Entry) -> Entry:
@@ -93,7 +97,7 @@ def translate_month(key: str):
     return ' # "-" # '.join(strings)
 
 
-def _translate_word(word, d):
+def _translate_word(word: str):
     # Check if the word needs to be protected by curly braces to prevent
     # recapitalization.
     if (
@@ -103,21 +107,17 @@ def _translate_word(word, d):
         or word[0] == "\\"
     ):
         needs_protection = False
-    elif any([char.isupper() for char in word[1:]]):
+    elif any(char.isupper() for char in word[1:]):
         needs_protection = True
     else:
-        needs_protection = (
-            any([char.isupper() for char in word])
-            and d.check(word)
-            and not d.check(word.lower())
-        )
+        needs_protection = any(char.isupper() for char in word)
 
     if needs_protection:
         return "{" + word + "}"
     return word
 
 
-def _translate_title(val):
+def _translate_title(val: str):
     """The capitalization of BibTeX entries is handled by the style, so names (Newton)
     or abbreviations (GMRES) may not be capitalized. This is unless they are wrapped in
     curly braces.
@@ -137,7 +137,7 @@ def _translate_title(val):
         if k > 0 and words[k - 1][-1] == ":" and words[k][0] != "{":
             words[k] = "{" + words[k].capitalize() + "}"
 
-    words = ["-".join(w for w in word.split("-")) for word in words]
+    words = ["-".join(_translate_word(w) for w in word.split("-")) for word in words]
 
     return " ".join(words)
 
@@ -148,7 +148,7 @@ def preserve_title_capitalization(d: dict[str, Entry]) -> None:
             title = entry.fields["title"]
             entry.fields["title"] = _translate_title(title)
         except KeyError:
-            warn(f"'entry' {entry} has no title")
+            warn(f"'entry' {entry} has no title", stacklevel=1)
 
 
 def set_page_range_separator(d: dict[str, Entry], string: str) -> None:
@@ -455,7 +455,7 @@ def filter_fields(data, excludes=None):
     return data
 
 
-def bibtex_parser(infile):
+def bibtex_parser(infile: IO[str]):
     """
     Returns the parsed bibtex data and adds context to the exception
 
@@ -466,15 +466,15 @@ def bibtex_parser(infile):
             data (dict): bibtex entries
     """
     try:
-        data = bibtex.Parser().parse_file(infile)
+        data = bibtex.Parser().parse_file(str(infile))
         return data
 
     except Exception as e:
-        print("There was an error when parsing " + infile.name)
+        print(f"There was an error when parsing {infile.name}")
         raise e
 
 
-def write(string: str, outfile=None):
+def write(string: str, outfile: IO[str] | None = None):
     """
     Writes a string to a BibTeX file
 
@@ -483,7 +483,7 @@ def write(string: str, outfile=None):
             outfile (FileType("r")): file to write to (default: None)
     """
     if outfile:
-        with open(outfile.name, "w") as f:
+        with Path(outfile.name).open("w") as f:
             f.write(string)
     else:
         sys.stdout.write(string)

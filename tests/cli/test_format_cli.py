@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import tempfile
 from pathlib import Path
 
@@ -54,13 +56,13 @@ def test_cli_format(ref_in, ref_out, capsys):
     with tempfile.TemporaryDirectory() as tmpdir:
         infile = Path(tmpdir) / "test.bib"
 
-        with open(infile, "w") as f:
+        with infile.open("w") as f:
             f.write(ref_in)
 
-        bibfmt.cli.main(["format", str(infile)])
+        bibfmt.cli.main([str(infile)])
         captured = capsys.readouterr()
         assert captured.out == ref_out
 
-        bibfmt.cli.main(["format", "--in-place", str(infile)])
-        with open(infile) as f:
+        bibfmt.cli.main(["--in-place", str(infile)])
+        with infile.open() as f:
             assert f.read() == ref_out

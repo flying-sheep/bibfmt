@@ -1,47 +1,67 @@
 [project]
 name = "bibfmt"
 version = "4.2.0"
-authors = [{name = "Nico Schlömer", email = "nico.schloemer@gmail.com"}]
+authors = [{ name = "Nico Schlömer", email = "nico.schloemer@gmail.com" }]
 description = "BibTeX formatter"
 urls.Code = "https://github.com/flying-sheep/bibfmt"
 urls.Issues = "https://github.com/flying-sheep/bibfmt/issues"
 readme = "README.md"
 license = "GPL-3.0-or-later"
-classifiers =[
-    "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Topic :: Scientific/Engineering",
-    "Topic :: Utilities",
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Utilities",
 ]
-keywords =["latex", "bibtex"]
+keywords = ["latex", "bibtex"]
 dependencies = [
-    "pybtex >=0.19.0",
-    "pylatexenc",
-    "requests",
-    "requests_cache",
-    "rich >=9.4.0",
-    "unidecode",
+  "pybtex >=0.19.0",
+  "pylatexenc",
+  "requests",
+  "requests_cache",
+  "rich >=9.4.0",
+  "unidecode",
 ]
 requires-python = ">=3.9"
 
 [project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-codeblocks >= 0.12.2",
-    "pytest-cov",
-]
+test = ["pytest", "pytest-codeblocks >= 0.12.2", "pytest-cov"]
 
 [project.scripts]
 bibfmt = "bibfmt.cli:main"
 
+[tool.hatch.version]
+source = "vcs"
+
 [tool.hatch.envs.default]
 features = ["test"]
+
+[tool.ruff]
+src = ["src"]
+[tool.ruff.format]
+docstring-code-format = true
+[tool.ruff.lint]
+select = [
+  "E",   # Error detected by Pycodestyle
+  "F",   # Errors detected by Pyflakes
+  "W",   # Warning detected by Pycodestyle
+  "B",   # Error-prone code
+  "C4",  # Comprehensions
+  "UP",  # pyupgrade
+  "I",   # isort
+  "TCH", # manage type checking blocks
+  "ICN", # Follow import conventions
+  "PTH", # Pathlib instead of os.path
+]
+[tool.ruff.lint.isort]
+known-first-party = ["bibfmt"]
+required-imports = ["from __future__ import annotations"]
 
 [build-system]
 build-backend = "hatchling.build"
