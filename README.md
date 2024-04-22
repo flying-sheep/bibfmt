@@ -17,14 +17,14 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  --version, -v         display version information
+  --version, -V         display version information
   -i, --in-place        modify infile in place
   --drop DROP           drops field from bibtex entry if they exist, can be passed multiple times
 
 Formatting:
   -b, --sort-by-bibkey  sort entries by BibTeX key (default: false)
-  --indent INDENT       how to indent the entries.
-                        Specify e.g. `4` for 4 spaces or `tab` (default: 2 spaces)
+  --indent INDENT       how to indent the entries. Specify e.g. `4` for 4 spaces or `tab` (default: 2 spaces)
+  --align ALIGN         align the fields to maximally this number of columns (default: 14)
   -d {braces,quotes}, --delimiter-type {braces,quotes}
                         which delimiters to use in the output file (default: braces {...})
   --doi-url-type {unchanged,new,short}
