@@ -226,17 +226,23 @@ def pybtex_to_bibtex_string(
     left, right = delimiters
 
     assert entry.persons is not None  # noqa: S101
+    assert entry.fields is not None  # noqa: S101
+
+    n_col = max(
+        (len(k) for k in (*entry.persons.keys(), *entry.fields.keys())), default=0
+    )
+    key_fmt = f"{{:<{min(align, n_col)}}}".format
+
+    def add_content(key: str, value: str) -> None:
+        content.append(f"{key_fmt(key)} = {left}{value}{right}")
+
     for key, persons in entry.persons.items():
         persons_str = " and ".join([_get_person_str(p) for p in persons])
-        content.append(f"{key.lower()} = {left}{persons_str}{right}")
+        add_content(key.lower(), persons_str)
 
-    assert entry.fields is not None  # noqa: S101
     keys = entry.fields.keys()
     if sort:
         keys = sorted(keys)
-
-    n_col = min(align, max((len(k) for k in keys), default=0))
-    key_fmt = f"{{:<{n_col}}}"
 
     for key in keys:
         value: str = entry.fields[key]
@@ -245,16 +251,15 @@ def pybtex_to_bibtex_string(
         key = key.lower()  # noqa: PLW2901
 
         if key == "month":
-            month_string = translate_month(value)
-            if month_string:
-                content.append(f"{key} = {month_string}")
+            if month_string := translate_month(value):
+                add_content(key, month_string)
             continue
 
         with contextlib.suppress(AttributeError):
             value = value.replace("\N{REPLACEMENT CHARACTER}", "?")
 
         if value is not None:
-            content.append(f"{key_fmt.format(key)} = {left}{value}{right}")
+            add_content(key, value)
 
     # Make sure that every line ends with a comma
     out += indent.join([line + ",\n" for line in content])
