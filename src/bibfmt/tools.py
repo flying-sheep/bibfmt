@@ -233,10 +233,8 @@ def pybtex_to_bibtex_string(
     )
     key_fmt = f"{{:<{min(align, n_col)}}}".format
 
-    def add_content(key: str, value: str, *, add_delims: bool = True) -> None:
-        if add_delims:
-            value = f"{left}{value}{right}"
-        content.append(f"{key_fmt(key)} = {value}")
+    def add_content(key: str, value: str) -> None:
+        content.append(f"{key_fmt(key)} = {left}{value}{right}")
 
     for key, persons in entry.persons.items():
         persons_str = " and ".join([_get_person_str(p) for p in persons])
@@ -253,9 +251,8 @@ def pybtex_to_bibtex_string(
         key = key.lower()  # noqa: PLW2901
 
         if key == "month":
-            month_string = translate_month(value)
-            if month_string:
-                add_content(key, month_string, add_delims=False)
+            if month_string := translate_month(value):
+                add_content(key, month_string)
             continue
 
         with contextlib.suppress(AttributeError):
