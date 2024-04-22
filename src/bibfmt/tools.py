@@ -6,26 +6,26 @@ import contextlib
 import logging
 import re
 import sys
+from collections.abc import Iterable
 from copy import deepcopy
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 from warnings import warn
 
 import requests
-
-# for enhanced error messages when parsing
+from pybtex.database import Person
 from pybtex.database.input import bibtex
 from pylatexenc.latex2text import LatexNodes2Text
 from pylatexenc.latexencode import unicode_to_latex
 
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, MutableMapping, Sequence
     from collections.abc import Set as AbstractSet
-    from typing import IO
+    from typing import IO, Literal
 
-    from pybtex.database import BibliographyData, Entry, Person
+    from pybtex.database import BibliographyData, Entry
 
 
 @cache
@@ -57,14 +57,14 @@ def pybtex_to_dict(entry: Entry) -> dict[str, str]:
     transform = unicode_to_latex
     assert entry.persons is not None  # noqa: S101
     assert entry.fields is not None  # noqa: S101
-    for key, persons in entry.persons.items():
+    for key, persons in cast(dict[str, Iterable[Person]], entry.persons).items():
         d[key.lower()] = [
             {
-                "first": [transform(string) for string in p.first_names],
-                "middle": [transform(string) for string in p.middle_names],
-                "prelast": [transform(string) for string in p.prelast_names],
-                "last": [transform(string) for string in p.last_names],
-                "lineage": [transform(string) for string in p.lineage_names],
+                "first": [transform(string) for string in p.first_names or ()],
+                "middle": [transform(string) for string in p.middle_names or ()],
+                "prelast": [transform(string) for string in p.prelast_names or ()],
+                "last": [transform(string) for string in p.last_names or ()],
+                "lineage": [transform(string) for string in p.lineage_names or ()],
             }
             for p in persons
         ]
@@ -81,18 +81,8 @@ def translate_month(key: str) -> str | None:
     Try to handle most of this here.
     """
     months = [
-        "jan",
-        "feb",
-        "mar",
-        "apr",
-        "may",
-        "jun",
-        "jul",
-        "aug",
-        "sep",
-        "oct",
-        "nov",
-        "dec",
+        *("jan", "feb", "mar", "apr", "may", "jun"),
+        *("jul", "aug", "sep", "oct", "nov", "dec"),
     ]
 
     # Sometimes, the key is just a month
@@ -177,8 +167,8 @@ def preserve_title_capitalization(d: dict[str, Entry]) -> None:
             warn(f"'entry' {entry} has no title", stacklevel=1)
 
 
-def set_page_range_separator(d: dict[str, Entry], string: str) -> None:
-    """Replace any number of dashes (hypen, en, em, etc.) by page_range_separator.
+def set_page_range_separator(d: MutableMapping[str, Entry], string: str) -> None:
+    """Replace any number of dashes (hyphen, en, em, etc.) by page_range_separator.
 
     See Also
     --------
@@ -245,7 +235,7 @@ def pybtex_to_bibtex_string(
         keys = sorted(keys)
 
     for key in keys:
-        value = entry.fields[key]
+        value: str = entry.fields[key]
 
         # Always make keys lowercase
         key = key.lower()  # noqa: PLW2901
@@ -291,24 +281,20 @@ def get_short_doi(doi: str) -> str | None:
 
 
 def _get_person_str(p: Person) -> str:
-    out = ", ".join(
-        filter(
-            None,
-            [
-                " ".join(p.prelast_names + p.last_names),
-                " ".join(p.lineage_names),
-                # In plain English, you wouldn't put a full space between abbreviated
-                # initials, see, e.g.,
-                # <https://english.stackexchange.com/a/105529/23644>. In bib files,
-                # though, it's useful, see
-                # <https://github.com/nschloe/betterbib/issues/212> and
-                # <https://clauswilke.com/blog/2015/10/02/bibtex/>.
-                # See <https://tex.stackexchange.com/a/11083/13262> on how to configure
-                # biber/biblatex to use thin spaces.
-                " ".join(p.first_names + p.middle_names),
-            ],
-        )
-    )
+    name_parts = [
+        " ".join((*(p.prelast_names or ()), *(p.last_names or ()))),
+        " ".join(p.lineage_names or ()),
+        # In plain English, you wouldn't put a full space between abbreviated
+        # initials, see, e.g.,
+        # <https://english.stackexchange.com/a/105529/23644>. In bib files,
+        # though, it's useful, see
+        # <https://github.com/nschloe/betterbib/issues/212> and
+        # <https://clauswilke.com/blog/2015/10/02/bibtex/>.
+        # See <https://tex.stackexchange.com/a/11083/13262> on how to configure
+        # biber/biblatex to use thin spaces.
+        " ".join((*(p.first_names or ()), *(p.middle_names or ()))),
+    ]
+    out = ", ".join(filter(None, name_parts))
     # If the name is completely capitalized, it's probably by mistake.
     if out == out.upper():
         out = out.title()
@@ -318,10 +304,10 @@ def _get_person_str(p: Person) -> str:
 # This used to be a write() function, but beware of exceptions! Files would get
 # unintentionally overridden, see <https://github.com/nschloe/betterbib/issues/184>
 def dict_to_string(
-    od: dict[str, Entry],
-    delimiter_type: str,
+    od: Mapping[str, Entry],
+    delimiter_type: Literal["braces", "quotes"],
     *,
-    tab_indent: bool,
+    indent: int | Literal["tab"] = 2,
     preamble: list | None = None,
 ) -> str:
     """Create a string representing the bib entries.
@@ -332,8 +318,8 @@ def dict_to_string(
         dictionary of bibtex entries
     delimiter_type
         delimiter to use to mark strings
-    tab_indent
-        whether to use tabs to indent the entries
+    indent
+        how to indent the entries
     preamble
         list of preamble commands
 
@@ -352,7 +338,10 @@ def dict_to_string(
     # Add segments for each bibtex entry in order
     segments += [
         pybtex_to_bibtex_string(
-            d, bib_id, delimiters=delimiters, indent="\t" if tab_indent else " "
+            d,
+            bib_id,
+            delimiters=delimiters,
+            indent="\t" if indent == "tab" else (" " * indent),
         )
         for bib_id, d in od.items()
     ]
