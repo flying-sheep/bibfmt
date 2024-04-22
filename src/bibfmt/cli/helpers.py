@@ -11,20 +11,22 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from typing import IO, Literal
 
-    class FileParserArgs(argparse.Namespace):
-        """File handling arguments."""
 
-        infiles: Sequence[IO[str]]
-        in_place: bool
+class FileParserArgs(argparse.Namespace):
+    """File handling arguments."""
 
-    class FormattingParserArgs(argparse.Namespace):
-        """Bibtex formatting arguments."""
+    infiles: Sequence[IO[str]]
+    in_place: bool
 
-        sort_by_bibkey: bool
-        tab_indent: bool
-        delimiter_type: Literal["braces", "quotes"]
-        doi_url_type: Literal["unchanged", "new", "short"]
-        page_range_separator: str
+
+class FormattingParserArgs(argparse.Namespace):
+    """Bibtex formatting arguments."""
+
+    sort_by_bibkey: bool
+    tab_indent: bool
+    delimiter_type: Literal["braces", "quotes"]
+    doi_url_type: Literal["unchanged", "new", "short"]
+    page_range_separator: str
 
 
 def add_file_parser_arguments(parser: argparse.ArgumentParser) -> None:
