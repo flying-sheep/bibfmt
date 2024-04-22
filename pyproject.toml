@@ -1,6 +1,5 @@
 [project]
 name = "bibfmt"
-version = "4.2.0"
 authors = [{ name = "Nico Schlömer", email = "nico.schloemer@gmail.com" }]
 description = "BibTeX formatter"
 urls.Code = "https://github.com/flying-sheep/bibfmt"
@@ -31,6 +30,7 @@ dependencies = [
   "english-words",
 ]
 requires-python = ">=3.9"
+dynamic = ["version"]
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-codeblocks >= 0.12.2", "pytest-cov"]
