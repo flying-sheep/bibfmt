@@ -50,7 +50,7 @@ def run(args: FormatArgs) -> None:
         string = dict_to_string(
             d,
             args.delimiter_type,
-            tab_indent=args.tab_indent,
+            indent=args.indent,
             # TODO(nschloe): use public field when it becomes possible  # noqa: TD003
             preamble=data._preamble,  # noqa: SLF001
         )

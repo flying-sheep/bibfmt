@@ -44,10 +44,21 @@ class FormattingParserArgs(argparse.Namespace):
     """Bibtex formatting arguments."""
 
     sort_by_bibkey: bool
-    tab_indent: bool
+    indent: int | Literal["tab"]
     delimiter_type: Literal["braces", "quotes"]
     doi_url_type: Literal["unchanged", "new", "short"]
     page_range_separator: str
+
+
+def validate_indent(s: str) -> int | Literal["tab"]:
+    """Validate the indent argument."""
+    if s == "tab":
+        return s
+    try:
+        return int(s)
+    except ValueError:
+        msg = f"Invalid indent value: {s!r} (expected an int or 'tab')"
+        raise argparse.ArgumentTypeError(msg) from None
 
 
 def add_formatting_parser_arguments(parser: argparse.ArgumentParser) -> None:
@@ -67,17 +78,20 @@ def add_formatting_parser_arguments(parser: argparse.ArgumentParser) -> None:
         help="sort entries by BibTeX key (default: false)",
     )
     formatting_group.add_argument(
-        "-t",
-        "--tab-indent",
-        action="store_true",
-        help="use tabs for indentation (default: false)",
+        "--indent",
+        type=validate_indent,
+        default=2,
+        help=(
+            "how to indent the entries. "
+            "Specify e.g. `4` for 4 spaces or `tab` (default: 2 spaces)"
+        ),
     )
     formatting_group.add_argument(
         "-d",
         "--delimiter-type",
         choices=["braces", "quotes"],
         default="braces",
-        help=("which delimiters to use in the output file " "(default: braces {...})"),
+        help=("which delimiters to use in the output file (default: braces {...})"),
     )
     formatting_group.add_argument(
         "--doi-url-type",

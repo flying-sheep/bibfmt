@@ -317,7 +317,7 @@ def dict_to_string(
     od: dict[str, Entry],
     delimiter_type: Literal["braces", "quotes"],
     *,
-    tab_indent: bool,
+    indent: int | Literal["tab"] = 2,
     preamble: list | None = None,
 ) -> str:
     """Create a string representing the bib entries.
@@ -328,8 +328,8 @@ def dict_to_string(
         dictionary of bibtex entries
     delimiter_type
         delimiter to use to mark strings
-    tab_indent
-        whether to use tabs to indent the entries
+    indent
+        how to indent the entries
     preamble
         list of preamble commands
 
@@ -348,7 +348,10 @@ def dict_to_string(
     # Add segments for each bibtex entry in order
     segments += [
         pybtex_to_bibtex_string(
-            d, bib_id, delimiters=delimiters, indent="\t" if tab_indent else " "
+            d,
+            bib_id,
+            delimiters=delimiters,
+            indent="\t" if indent == "tab" else (" " * indent),
         )
         for bib_id, d in od.items()
     ]

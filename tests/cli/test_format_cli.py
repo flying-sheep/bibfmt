@@ -23,15 +23,15 @@ TEST_BIBTEXT_PREAMBLE_FORMATTED_KEEP = """\
 @preamble{"\\addbibressource{dependend.bib}"}
 
 @article{foobar,
- doi = {foobar},
- url = {https://doi.org/foobar},
+  doi = {foobar},
+  url = {https://doi.org/foobar},
 }
 """
 
 TEST_BIBTEXT_PREAMBLE_FORMATTED_DROP = """\
 @article{foobar,
- doi = {foobar},
- url = {https://doi.org/foobar},
+  doi = {foobar},
+  url = {https://doi.org/foobar},
 }
 """
 
