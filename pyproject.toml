@@ -44,6 +44,11 @@ source = "vcs"
 [tool.hatch.envs.default]
 features = ["test"]
 
+[tool.pytest.ini_options]
+addopts = ["--import-mode=importlib", "--strict-markers"]
+filterwarnings = ["error", "ignore::DeprecationWarning:pybtex"]
+xfail_strict = true
+
 [tool.ruff]
 src = ["src"]
 [tool.ruff.format]
