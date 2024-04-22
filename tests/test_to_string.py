@@ -9,7 +9,7 @@ import bibfmt
 @pytest.mark.parametrize(
     "ref_entry,ref_str",
     [
-        (
+        pytest.param(
             Entry(
                 "article",
                 fields={
@@ -23,24 +23,24 @@ import bibfmt
                 " url = {https://doi.org/foobar},",
                 "}",
             ],
+            id="basic",
         ),
-        # escape ampersand:
-        (
+        pytest.param(
             Entry("article", fields={"title": "Foo \\& Bar"}),
             ["@article{foobar,", " title = {Foo \\& Bar},", "}"],
+            id="escape_ampersand",
         ),
-        # escape command:
-        (
+        pytest.param(
             Entry("article", fields={"title": "Foo on \\LaTeX"}),
             ["@article{foobar,", " title = {Foo on \\LaTeX},", "}"],
+            id="escape_command",
         ),
-        # more empty space
-        (
+        pytest.param(
             Entry("article", fields={"title": "Foo \\ Bridge"}),
             ["@article{foobar,", " title = {Foo \\ Bridge},", "}"],
+            id="extra_space",
         ),
-        # encode url
-        (
+        pytest.param(
             Entry(
                 "misc",
                 fields={
@@ -54,8 +54,9 @@ import bibfmt
                 " note = {Online; accessed 19-February-2019},",
                 "}",
             ],
+            id="encode_url",
         ),
-        (
+        pytest.param(
             Entry(
                 "misc",
                 fields={"doi": "10.1007/978-1-4615-7419-4_6"},
@@ -65,8 +66,9 @@ import bibfmt
                 " doi = {10.1007/978-1-4615-7419-4_6},",
                 "}",
             ],
+            id="full_doi",
         ),
-        (
+        pytest.param(
             Entry(
                 "misc",
                 persons={"author": [Person("Doe, J. J.")]},
@@ -76,6 +78,7 @@ import bibfmt
                 " author = {Doe, J. J.},",
                 "}",
             ],
+            id="author",
         ),
     ],
 )

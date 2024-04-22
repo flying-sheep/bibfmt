@@ -35,20 +35,20 @@ TEST_BIBTEXT_PREAMBLE_FORMATTED_DROP = (
 @pytest.mark.parametrize(
     "ref_in,ref_out",
     [
-        # Keeping when unformatted
-        (
+        pytest.param(
             TEST_BIBTEXT_PREAMBLE_UNFORMATTED,
             TEST_BIBTEXT_PREAMBLE_FORMATTED_KEEP,
+            id="unfmt",
         ),
-        # Keeping when preamble and preformatted
-        (
+        pytest.param(
             TEST_BIBTEXT_PREAMBLE_FORMATTED_KEEP,
             TEST_BIBTEXT_PREAMBLE_FORMATTED_KEEP,
+            id="fmt_preamble",
         ),
-        # Keeping when no preamble and preformatted
-        (
+        pytest.param(
             TEST_BIBTEXT_PREAMBLE_FORMATTED_DROP,
             TEST_BIBTEXT_PREAMBLE_FORMATTED_DROP,
+            id="fmt_no_preamble",
         ),
     ],
 )
