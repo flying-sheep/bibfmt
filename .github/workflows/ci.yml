@@ -17,11 +17,11 @@ jobs:
       with:
         fetch-depth: 0
         filter: blob:none
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: "3.12"
         cache: pip
-    - run: pip install -e .[test]
+    - run: pip install -e .[test] pytest-md
     - uses: pavelzw/pytest-action@v2
       with:
         custom-arguments: --color=yes
