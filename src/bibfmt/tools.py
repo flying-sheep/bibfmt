@@ -215,7 +215,8 @@ def pybtex_to_bibtex_string(
     bibtex_key: str,
     *,
     delimiters: tuple[str, str] = ("{", "}"),
-    indent: str = " ",
+    indent: str = "  ",
+    align: int = 14,
     sort: bool = False,
 ) -> str:
     """Represent BibTeX entry as str."""
@@ -234,6 +235,9 @@ def pybtex_to_bibtex_string(
     if sort:
         keys = sorted(keys)
 
+    n_col = min(align, max((len(k) for k in keys), default=0))
+    key_fmt = f"{{:<{n_col}}}"
+
     for key in keys:
         value: str = entry.fields[key]
 
@@ -250,7 +254,7 @@ def pybtex_to_bibtex_string(
             value = value.replace("\N{REPLACEMENT CHARACTER}", "?")
 
         if value is not None:
-            content.append(f"{key} = {left}{value}{right}")
+            content.append(f"{key_fmt.format(key)} = {left}{value}{right}")
 
     # Make sure that every line ends with a comma
     out += indent.join([line + ",\n" for line in content])
