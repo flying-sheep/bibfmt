@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import sys
 from copy import deepcopy
+from functools import cache
 from pathlib import Path
 from typing import IO, TYPE_CHECKING
 from warnings import warn
@@ -17,7 +18,16 @@ from pylatexenc.latexencode import unicode_to_latex
 from .errors import UniqueError
 
 if TYPE_CHECKING:
+    from collections.abc import Set
+
     from pybtex.database import Entry
+
+
+@cache
+def get_dict() -> Set[str]:
+    from english_words import get_english_words_set
+
+    return get_english_words_set(["web2"])
 
 
 def decode(entry: Entry) -> Entry:
@@ -110,10 +120,16 @@ def _translate_word(word: str):
     elif any(char.isupper() for char in word[1:]):
         needs_protection = True
     else:
-        needs_protection = any(char.isupper() for char in word)
+        english = get_dict()
+
+        # with a better spell checker, we could do “and word in english”
+        needs_protection = (
+            any(char.isupper() for char in word) and word.lower() not in english
+        )
+        print(word, needs_protection)
 
     if needs_protection:
-        return "{" + word + "}"
+        return f"{{{word}}}"
     return word
 
 
@@ -135,7 +151,7 @@ def _translate_title(val: str):
     # ```
     for k in range(len(words)):
         if k > 0 and words[k - 1][-1] == ":" and words[k][0] != "{":
-            words[k] = "{" + words[k].capitalize() + "}"
+            words[k] = f"{{{words[k].capitalize()}}}"
 
     words = ["-".join(_translate_word(w) for w in word.split("-")) for word in words]
 

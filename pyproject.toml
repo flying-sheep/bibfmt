@@ -27,6 +27,7 @@ dependencies = [
   "requests_cache",
   "rich >=9.4.0",
   "unidecode",
+  "english-words",
 ]
 requires-python = ">=3.9"
 
