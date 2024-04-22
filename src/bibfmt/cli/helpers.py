@@ -114,5 +114,6 @@ def add_formatting_parser_arguments(parser: argparse.ArgumentParser) -> None:
         "--page-range-separator",
         type=str,
         default="--",
+        metavar="SEP",
         help="page range separator (default: --)",
     )
