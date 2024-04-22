@@ -466,7 +466,7 @@ def bibtex_parser(infile: IO[str]):
             data (dict): bibtex entries
     """
     try:
-        data = bibtex.Parser().parse_file(str(infile))
+        data = bibtex.Parser().parse_file(infile)
         return data
 
     except Exception as e:
