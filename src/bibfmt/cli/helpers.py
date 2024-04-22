@@ -19,16 +19,6 @@ class FileParserArgs(argparse.Namespace):
     in_place: bool
 
 
-class FormattingParserArgs(argparse.Namespace):
-    """Bibtex formatting arguments."""
-
-    sort_by_bibkey: bool
-    tab_indent: bool
-    delimiter_type: Literal["braces", "quotes"]
-    doi_url_type: Literal["unchanged", "new", "short"]
-    page_range_separator: str
-
-
 def add_file_parser_arguments(parser: argparse.ArgumentParser) -> None:
     """Add the file handling arguments to an argparse parser.
 
@@ -48,6 +38,16 @@ def add_file_parser_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "-i", "--in-place", action="store_true", help="modify infile in place"
     )
+
+
+class FormattingParserArgs(argparse.Namespace):
+    """Bibtex formatting arguments."""
+
+    sort_by_bibkey: bool
+    tab_indent: bool
+    delimiter_type: Literal["braces", "quotes"]
+    doi_url_type: Literal["unchanged", "new", "short"]
+    page_range_separator: str
 
 
 def add_formatting_parser_arguments(parser: argparse.ArgumentParser) -> None:

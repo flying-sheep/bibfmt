@@ -23,7 +23,7 @@ from pylatexenc.latexencode import unicode_to_latex
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from collections.abc import Set as AbstractSet
-    from typing import IO
+    from typing import IO, Literal
 
     from pybtex.database import BibliographyData, Entry, Person
 
@@ -291,24 +291,20 @@ def get_short_doi(doi: str) -> str | None:
 
 
 def _get_person_str(p: Person) -> str:
-    out = ", ".join(
-        filter(
-            None,
-            [
-                " ".join(p.prelast_names + p.last_names),
-                " ".join(p.lineage_names),
-                # In plain English, you wouldn't put a full space between abbreviated
-                # initials, see, e.g.,
-                # <https://english.stackexchange.com/a/105529/23644>. In bib files,
-                # though, it's useful, see
-                # <https://github.com/nschloe/betterbib/issues/212> and
-                # <https://clauswilke.com/blog/2015/10/02/bibtex/>.
-                # See <https://tex.stackexchange.com/a/11083/13262> on how to configure
-                # biber/biblatex to use thin spaces.
-                " ".join(p.first_names + p.middle_names),
-            ],
-        )
-    )
+    name_parts = [
+        " ".join((*(p.prelast_names or ()), *(p.last_names or ()))),
+        " ".join(p.lineage_names or ()),
+        # In plain English, you wouldn't put a full space between abbreviated
+        # initials, see, e.g.,
+        # <https://english.stackexchange.com/a/105529/23644>. In bib files,
+        # though, it's useful, see
+        # <https://github.com/nschloe/betterbib/issues/212> and
+        # <https://clauswilke.com/blog/2015/10/02/bibtex/>.
+        # See <https://tex.stackexchange.com/a/11083/13262> on how to configure
+        # biber/biblatex to use thin spaces.
+        " ".join((*(p.first_names or ()), *(p.middle_names or ()))),
+    ]
+    out = ", ".join(filter(None, name_parts))
     # If the name is completely capitalized, it's probably by mistake.
     if out == out.upper():
         out = out.title()
@@ -319,7 +315,7 @@ def _get_person_str(p: Person) -> str:
 # unintentionally overridden, see <https://github.com/nschloe/betterbib/issues/184>
 def dict_to_string(
     od: dict[str, Entry],
-    delimiter_type: str,
+    delimiter_type: Literal["braces", "quotes"],
     *,
     tab_indent: bool,
     preamble: list | None = None,
